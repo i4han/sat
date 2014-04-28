@@ -1,6 +1,22 @@
-__ = {}, db = {}, Page = {}, Config = {};
+__ = {}, db = {}, Pages = {}, Config = {};
 module = { exports: {} };
-Sat = { isServer: false, isClient: false, isConfig: false };
+Sat = { isServer: false, isClient: false };
+
+if ( Meteor.isClient ) {
+    $( function () { 
+        if ( ! Sat.isClient ) 
+            Sat.init(); 
+    });
+} else if ( Meteor.isServer ) {
+    Npm.require( 'coffee-script/register' );
+    var config = Npm.require( process.cwd().match(/^(.*)\.meteor/)[1] + 'lib/config' );
+    Config = config.Config
+    __ = config.__
+    Meteor.startup( function() {
+        if ( ! Sat.isServer ) 
+            Sat.init();            
+    });
+}
 
 __.deepExtend = function (target, source) {
     for (var prop in source)
@@ -16,6 +32,9 @@ __.capitalize = function (string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+__.isLowerCase = function (char, index) {
+    return char.charAt(index) >= 'a' && char.charAt(index) <= 'z' ? true : false
+}
 
 db.init = function () {
     db.collections = Config.collections;
@@ -26,26 +45,23 @@ db.init = function () {
     });
 }
 
-if ( Meteor.isClient ) {
-    $( function () {
-        if ( ! Sat.isClient ) Sat.init(); 
-        console.log('sat init.'); 
-    });
-}
 
 Sat.config = function () {
-    Sat.isConfig = true;
-    __.deepExtend( Config, module.exports.Config );
-    delete module.exports.Config;
+    if ( _.isEmpty(Config) && module.exports.Config ) {
+        __.deepExtend( Config, module.exports.Config );
+        delete module.exports.Config;
+    }
+    if ( module.exports.__ ) {
+        _.extend( __, module.exports.__ );
+        delete module.exports.__;
+    }
 }
 
 
 Sat.init = function () {
-    if ( ! Sat.isConfig ) Sat.config();
-    _.extend( __, module.exports.__ );
-    delete module.exports.__;
+    Sat.config();
     db.init();
-    _.extend( Page, module.exports );
+    var pages_in_file = module.exports;
     if ( Meteor.isServer ) {
         Sat.isServer = true;
         __.deepExtend( Config, module.exports.ServerConfig );
@@ -55,39 +71,43 @@ Sat.init = function () {
         Router.configure({ layoutTemplate: 'layout' });
         
         var startup = [];
-        _.each(_.keys(Page), function(file) {
-            if (Page[file].__events__ && Page[file].__events__.startup)
-                startup.push(Page[file].__events__.startup);
-        });        
-        Meteor.startup(function() {
-            _.each(startup, function(func) { func() });
-        });        
-        _.each(_.keys(Page), function(file) {
-            if (file.substring(0, 2) !== '__' || file.substring(0, 1) <= 'Z')
-                _.each(_.keys(Page[file]), function(page) {
-                    if (page.substring(0, 2) !== '__')
-                        _.each(_.keys(Page[file][page]), function(key) {
-                            if (key.substring(0, 2) !== '__' && _.indexOf(Config.templates, key) === -1 )
-                                if (key === 'helpers')
-                                    Template[page].helpers( Page[file][page].helpers );
-                                else if (key === 'events')
-                                    Template[page].events( Page[file][page].events );
-                                else
-                                    Template[page][key] = Page[file][page][key];
-                        });
-                    else
-                        delete Page[file][page]
-                        });
-            else
-                delete Page[file]
-                });
-        var router_map = { home:{ path:'/' }, x3d:{}, help:{}, profile:{} };
+        _.each(_.keys(pages_in_file), function(file) {
+            if ( __.isLowerCase(file, 0) )
+                _.extend( Pages, pages_in_file[file] );
+            if (pages_in_file[file].__events__ && pages_in_file[file].__events__.startup) {
+                startup.push(pages_in_file[file].__events__.startup);
+                delete pages_in_file[file].__events__.startup
+            }
+            _.each( _.filter( _.keys( pages_in_file[file] ), function (key) { 
+                    return ! ( (__.isLowerCase(key, 0) || key.charAt(0) === '_') && __.isLowerCase(key, 1) ); 
+                }), function (name) {
+                    delete Pages[name];
+            });
+        });
+        if (startup) 
+            Meteor.startup(function() {
+                _.each(startup, function(func) { func() });
+            });
+        var router_map = {};
+        _.each(_.keys(Pages), function(name) {
+            _.each(_.keys(Pages[name]), function(key) {
+                if (key.substring(0, 2) !== '__' && _.indexOf(Config.templates, key) === -1 )
+                    if (key === 'helpers')
+                        Template[name].helpers( Pages[name].helpers );
+                    else if (key === 'events')
+                        Template[name].events( Pages[name].events );
+                    else if (key === 'router') {
+                        router_map[name] = Pages[name].router;
+                        delete Pages[name].router;
+                    } else
+                        Template[name][key] = Pages[name][key];
+            });
+        });
         Router.map( function () {
             for (var key in router_map)
                 this.route( key, router_map[key] );
         });
-    } 
-    delete module.exports
+    }
 }
 
 
