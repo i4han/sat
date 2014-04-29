@@ -2,7 +2,7 @@ Login = {};
 Login.loginSession = {
   set: function(key, value) {
     if (_.contains(['errorMessage', 'infoMessage'], key)) {
-      throw new Error("Don't set errorMessage or infoMessage directly. Instead, use errorMessage() or infoMessage().");
+      throw new Error("Use errorMessage() or infoMessage().");
     }
     return this._set(key, value);
   },
@@ -345,7 +345,7 @@ Login.ui = {
     if (invalidExtraSignupFields) {
       return;
     }
-    return Login.createUser(options, function(error) {
+    return Accounts.createUser(options, function(error) {
       if (error) {
         return Login.loginSession.errorMessage(error.reason || "Unknown error");
       } else {

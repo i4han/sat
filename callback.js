@@ -79,7 +79,7 @@ var instagram_oauth = function ( req, res ) {
 
 
 var app = express();
-app.use(express.json());
+// app.use(express.json());
 
 app.post( Config.instagram.callback_path, function(req, res) {
     rc.set( 'callback:rawbody', JSON.stringify( req.body ) );
