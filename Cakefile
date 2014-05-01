@@ -4,6 +4,7 @@ clone = require("nodegit").Repo.clone
 repositories =
     'blaze-layout': 'https://github.com/EventedMind/blaze-layout.git'
     'iron-router':  'https://github.com/EventedMind/iron-router.git'
+    'deps-ext':     'https://github.com/EventedMind/deps-ext.git'
     'jade':         'https://github.com/i4han/jade.git'
     'browser':      'https://github.com/i4han/browser.git'
 
@@ -33,6 +34,10 @@ task 'blaze-layout', 'Clone blaze-layout', ->
 task 'iron-router', 'Clone iron-router', ->
     process.chdir '..'
     git_clone 'iron-router'
+
+task 'deps-ext', 'Clone deps-ext', ->
+    process.chdir '..'
+    git_clone 'deps-ext'
 
 task 'jade', 'Clone jade', ->
     process.chdir '..'
