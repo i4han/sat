@@ -6,8 +6,9 @@ repositories =
     'iron-router':  'https://github.com/EventedMind/iron-router.git'
     'deps-ext':     'https://github.com/EventedMind/deps-ext.git'
     'jade':         'https://github.com/i4han/jade.git'
+    'bin':          'https://github.com/i4han/bin.git'
     'browser':      'https://github.com/i4han/browser.git'
-
+dirs = Object.keys repositories
 rm_rf = (path) ->
     files = [];
     files = fs.readdirSync path
@@ -22,33 +23,24 @@ rm_rf = (path) ->
 git_clone = (dir) ->
     clone repositories[dir], dir, null, (err, repo) -> throw err if err
 
+task_clone = (dir) ->
+    process.chdir '..'
+    git_clone dir
+
 task 'all', 'Clone all packages', ->
     process.chdir '..'
     for dir, url of repositories
         git_clone dir
-
-task 'blaze-layout', 'Clone blaze-layout', ->
-    process.chdir '..'
-    git_clone 'blaze-layout'
-
-task 'iron-router', 'Clone iron-router', ->
-    process.chdir '..'
-    git_clone 'iron-router'
-
-task 'deps-ext', 'Clone deps-ext', ->
-    process.chdir '..'
-    git_clone 'deps-ext'
-
-task 'jade', 'Clone jade', ->
-    process.chdir '..'
-    git_clone 'jade'
-
-task 'browser', 'Clone browser', ->
-    process.chdir '..'
-    git_clone 'browser'
-    
+        
 task 'clean', 'Clean packages', ->
     process.chdir '..'
     for dir, url of repositories
         rm_rf dir
-        
+
+task dirs[0], "Clone #{dirs[0]}", -> task_clone dirs[0]
+task dirs[1], "Clone #{dirs[1]}", -> task_clone dirs[1]
+task dirs[2], "Clone #{dirs[2]}", -> task_clone dirs[2]
+task dirs[3], "Clone #{dirs[3]}", -> task_clone dirs[3]
+task dirs[4], "Clone #{dirs[4]}", -> task_clone dirs[4]
+task dirs[5], "Clone #{dirs[5]}", -> task_clone dirs[5]
+
