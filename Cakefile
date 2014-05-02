@@ -1,5 +1,5 @@
 fs = require 'fs'
-clone = require("nodegit").Repo.clone
+{spawn} = require 'child_process'
 
 repositories =
     'blaze-layout': 'https://github.com/EventedMind/blaze-layout.git'
@@ -20,8 +20,7 @@ rm_rf = (path) ->
             fs.unlinkSync curPath
     fs.rmdirSync path
 
-git_clone = (dir) ->
-    clone repositories[dir], dir, null, (err, repo) -> throw err if err
+git_clone  = (dir) -> spawn 'git', ['clone', repositories[dir]], io
 
 task_clone = (dir) ->
     process.chdir '..'
