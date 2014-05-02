@@ -19,7 +19,7 @@ rm_rf = (path) ->
         else
             fs.unlinkSync curPath
     fs.rmdirSync path
-
+io = stdio: 'inherit'
 git_clone  = (dir) -> spawn 'git', ['clone', repositories[dir]], io
 
 task_clone = (dir) ->
