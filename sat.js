@@ -1,22 +1,8 @@
-__ = {}, db = {}, Pages = {}, Config = {};
-module = { exports: {} };
+db = {}, Pages = {};
 Sat = { isServer: false, isClient: false };
-
-if ( Meteor.isClient ) {
-    $( function () { 
-        if ( ! Sat.isClient ) 
-            Sat.init(); 
-    });
-} else if ( Meteor.isServer ) {
-    Npm.require( 'coffee-script/register' );
-    var config = Npm.require( process.cwd().match(/^(.*)\.meteor/)[1] + 'lib/config' );
-    Config = config.Config
-    __ = config.__
-    Meteor.startup( function() {
-        if ( ! Sat.isServer ) 
-            Sat.init();            
-    });
-}
+__ = this.__
+Config = this.Config
+module = { exports:{} }
 
 __.deepExtend = function (target, source) {
     for (var prop in source)
@@ -46,20 +32,20 @@ db.init = function () {
 }
 
 
-Sat.config = function () {
-    if ( _.isEmpty(Config) && module.exports.Config ) {
-        __.deepExtend( Config, module.exports.Config );
-        delete module.exports.Config;
-    }
-    if ( module.exports.__ ) {
-        _.extend( __, module.exports.__ );
-        delete module.exports.__;
-    }
+if ( Meteor.isClient ) {
+    $( function () { 
+        if ( ! Sat.isClient ) 
+            Sat.init(); 
+    });
+} else if ( Meteor.isServer ) {
+    Meteor.startup( function() {
+        if ( ! Sat.isServer ) 
+            Sat.init();            
+    });
 }
 
 
 Sat.init = function () {
-    Sat.config();
     db.init();
     var pages_in_file = module.exports;
     if ( Meteor.isServer ) {
@@ -110,13 +96,3 @@ Sat.init = function () {
     }
 }
 
-
-vaild_keys = [
-    'dropdownVisible', 'inSignupFlow', 'inForgotPasswordFlow', 'inChangePasswordFlow', 'inMessageOnlyFlow',
-    'errorMessage', 'infoMessage', 'resetPasswordToken', 'enrollAccountToken', 'justVerifiedEmail',
-    'configureLoginServiceDialogVisible', 'configureLoginServiceDialogServiceName', 'configureLoginServiceDialogSaveDisabled' ];
-
-validateKey = function ( key ) { 
-/*    if (!_.contains( vaild_keys, key ) )
-        throw new Error( "Invalid key in loginButtonsSession: " + key ); */
-}

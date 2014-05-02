@@ -1,7 +1,6 @@
 var _  = Npm.require('underscore');
 var Fiber  = Npm.require('fibers');
 var Future = Npm.require('fibers/future');
-var redis  = Npm.require('redis'), rc = redis.createClient();
 var express  = Npm.require('express');
 var request  = Npm.require('request');
 
@@ -10,12 +9,12 @@ var instagram_update_item = function (update) {
     _.extend( update,  { service:'Instagram' } );
     __.renameKeys( update, { object_id: 'instagram_user_id' });
     delete update['object'];
-    rc.set( 'callback:update', JSON.stringify( update ) );
+    Config.redis.set( 'callback:update', JSON.stringify( update ) );
     Fiber( function () {
         db.Updates.insert( update );
         var connect = db.Connects.find({instagram_user_id:update.instagram_user_id}).fetch()[0]
         var media_url = Config.instagram.media_url( update.media_id, connect.access_token );
-        rc.set( 'callback:media_url', media_url );
+        Config.redis.set( 'callback:media_url', media_url );
         request.get( media_url, function ( error, response, body ) {
             var data = JSON.parse( body ).data
             var item = data.images.standard_resolution;
@@ -29,7 +28,7 @@ var instagram_update_item = function (update) {
                 instagram_user_id: connect.instagram_user_id,
                 access_token:      connect.access_token
             });
-            rc.set( 'callback:item', JSON.stringify(item) );
+            Config.redis.set( 'callback:item', JSON.stringify(item) );
             Fiber( function () {
                 db.Items.insert( item );
             }).run();
@@ -40,11 +39,11 @@ var instagram_update_item = function (update) {
 
 var instagram_update = function (req, res) {    
     _.each( req.body, function (update) {
-        rc.rpush( 'callback:updates', JSON.stringify(update) );
-        rc.sismember('callback:media_id', update.data.media_id, function (err, reply) {
-            rc.rpush( 'callback:reply', JSON.stringify(reply) );
+        Config.redis.rpush( 'callback:updates', JSON.stringify(update) );
+        Config.redis.sismember('callback:media_id', update.data.media_id, function (err, reply) {
+            Config.redis.rpush( 'callback:reply', JSON.stringify(reply) );
             if ( !reply ) {
-                rc.sadd( 'callback:media_id', update.data.media_id, function (err) {} );
+                Config.redis.sadd( 'callback:media_id', update.data.media_id, function (err) {} );
                 instagram_update_item( update );
             }
         });
@@ -82,7 +81,7 @@ var app = express();
 // app.use(express.json());
 
 app.post( Config.instagram.callback_path, function(req, res) {
-    rc.set( 'callback:rawbody', JSON.stringify( req.body ) );
+    Config.redis.set( 'callback:rawbody', JSON.stringify( req.body ) );
     var command = req.query.command;
     if ( command === 'update' ) {
         instagram_update( req, res );
@@ -99,8 +98,8 @@ app.get( Config.instagram.callback_path, function( req, res ) {
     if ( command === 'oauth' ) {
         instagram_oauth( req, res );
     } else if ( req.query['hub.mode'] ) {
-        rc.set( 'hub.mode', req.query['hub.mode'] );
-        rc.set( 'hub.challenge', req.query['hub.challenge'] );
+        Config.redis.set( 'hub.mode', req.query['hub.mode'] );
+        Config.redis.set( 'hub.challenge', req.query['hub.challenge'] );
         res.send( req.query['hub.challenge'] );
     }
 });
