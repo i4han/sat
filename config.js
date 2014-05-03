@@ -20,7 +20,7 @@ if (typeof Meteor === "undefined" || Meteor === null) {
 main = {
   title: 'App',
   home_url: 'http://www.hi16.ca',
-  autogen_prefix: 'auto_generated',
+  autogen_prefix: 'auto',
   callback_port: 3003,
   init: function() {
     if ((typeof Meteor === "undefined" || Meteor === null) || Meteor.isServer) {
@@ -59,28 +59,28 @@ this.Config = {
   },
   pages: {
     jade: {
-      target_file: main.target_dir + main.autogen_prefix + '.jade',
+      target_file: main.target_dir + main.autogen_prefix + '1.jade',
       indent: 1,
       format: function(name, block) {
         return "template(name=\"" + name + "\")\n" + block + "\n\n";
       }
     },
     stylus: {
-      target_file: main.target_dir + main.autogen_prefix + 'z.css',
+      target_file: main.target_dir + main.autogen_prefix + '6.css',
       indent: 0,
       format: function(name, block) {
         return stylus(block).render() + '\n';
       }
     },
     HTML: {
-      target_file: main.target_dir + main.autogen_prefix + '.html',
+      target_file: main.target_dir + main.autogen_prefix + '2.html',
       indent: 1,
       format: function(name, block) {
         return "<template name=\"" + name + "\">\n" + block + "\n</template>";
       }
     },
     head: {
-      target_file: main.target_dir + main.autogen_prefix + '_head.jade',
+      target_file: main.target_dir + main.autogen_prefix + '0.jade',
       indent: 1,
       header: 'head\n',
       format: function(name, block) {
@@ -88,21 +88,21 @@ this.Config = {
       }
     },
     less: {
-      target_file: main.target_dir + main.autogen_prefix + '.less',
+      target_file: main.target_dir + main.autogen_prefix + '5.less',
       indent: 0,
       format: function(name, block) {
         return block;
       }
     },
     css: {
-      target_file: main.target_dir + main.autogen_prefix + '.css',
+      target_file: main.target_dir + main.autogen_prefix + '4.css',
       indent: 0,
       format: function(name, block) {
         return block;
       }
     },
     styl: {
-      target_file: main.target_dir + main.autogen_prefix + '.styl',
+      target_file: main.target_dir + main.autogen_prefix + '3.styl',
       indent: 0,
       format: function(name, block) {
         return block;
@@ -121,7 +121,7 @@ this.Config = {
       this.source_dir = main.source_dir;
       this.target_dir = main.target_dir;
       this.storables = main.meteor_dir + 'private/storables';
-      this.set_prefix = 'set_';
+      this.set_prefix = '';
       this.autogen_prefix = main.autogen_prefix;
       if (typeof Meteor === "undefined" || Meteor === null) {
         this.redis = (require('redis')).createClient();
