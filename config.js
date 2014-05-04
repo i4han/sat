@@ -264,6 +264,8 @@ this.__.log = function(arg) {
 };
 
 if (typeof Meteor === "undefined" || Meteor === null) {
-  module.exports.Config = this.Config;
-  module.exports.__ = this.__;
+  module.exports = {
+    __: this.__,
+    Config: this.Config
+  };
 }
