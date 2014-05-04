@@ -5,8 +5,11 @@ if (typeof Meteor === "undefined" || Meteor === null) {
   _ = require('underscore');
   fs = require('fs');
   stylus = require('stylus');
-} else if (!this._.isEmpty(this.Config) && !this._.isEmpty(this.__)) {
-  return [this.Config, this.__];
+} else if (!Package.underscore._.isEmpty(this.Config) && !Package.underscore._.isEmpty(this.__)) {
+  return {
+    Config: this.Config,
+    __: this.__
+  };
 } else {
   _ = this._;
   this.module = {
